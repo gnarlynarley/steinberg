@@ -4,7 +4,7 @@
   import applyFloydSteinberg from './lib/utils/applyFloydSteinberg';
   import Color from './lib/utils/Color';
   import DropZone from './lib/components/DropZone.svelte';
-  import type { ChangeEventHandler } from 'svelte/elements';
+  import resizeImage from './lib/utils/resizeImage';
 
   let file: File | null = null;
   let src: string | null = null;
@@ -18,11 +18,15 @@
     .split('\n')
     .flatMap((line) => line.trim() || [])
     .join('\n');
-  let textarea = pallete;
+  let width = 500;
+
+  let form: HTMLFormElement;
 
   function submit(ev: SubmitEvent) {
     ev.preventDefault();
-    pallete = textarea;
+    const formData = new FormData(form);
+    pallete = formData.get('pallete')! as string;
+    width = parseInt(formData.get('width') as string, 10) || 500;
   }
 
   function onFileInputChange(ev: Event) {
@@ -41,21 +45,25 @@
   }
 
   $: imagePromise = src ? createImage(src) : null;
-  $: ditheredPromise = imagePromise
-    ? Promise.resolve(imagePromise).then((image) =>
+  $: resizedImage = imagePromise
+    ? imagePromise.then((image) => resizeImage(image, width))
+    : null;
+  $: ditheredPromise = resizedImage
+    ? resizedImage.then((image) =>
         applyFloydSteinberg(image, Color.createPalleteFromHexCodes(pallete))
       )
     : null;
 </script>
 
 <div class="container">
-  <div>
-    <form on:submit={submit} class="form">
-      <textarea bind:value={textarea}></textarea>
-      <button type="submit">set pallete</button>
-    </form>
-
+  <div class="sidebar">
     <input type="file" accept="image/*" on:change={onFileInputChange} />
+
+    <form bind:this={form} on:submit={submit} class="form">
+      <textarea defaultValue={pallete} name="pallete"></textarea>
+      <input defaultValue={width} type="number" name="width" />
+      <button type="submit">Render</button>
+    </form>
   </div>
 
   <DropZone bind:file>
@@ -81,6 +89,12 @@
     gap: 1em;
   }
 
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+  }
+
   .dropzone {
     padding: 1em;
     border: 2px solid #333;
@@ -90,6 +104,8 @@
     display: flex;
     flex-direction: column;
     gap: 1em;
+    padding: 0.5em;
+    border: 2px solid #333;
 
     textarea {
       min-height: 20em;
