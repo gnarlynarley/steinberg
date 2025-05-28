@@ -83,7 +83,7 @@
     <div class="dropzone">
       {#if shownImage}
         {#await shownImage then image}
-          <Canvas {image} />
+          <Canvas {image} pixelated />
         {/await}
       {:else}
         <h1>Drop an image here</h1>
