@@ -23,6 +23,13 @@ export default class Color implements ColorLike {
     );
   };
 
+  isDarker = (color: Color) => {
+    let a = this.r + this.g + this.b;
+    let b = color.r + color.g + color.b;
+
+    return a > b;
+  };
+
   static fromColorLike(color: ColorLike) {
     return new Color(color.r, color.g, color.b);
   }

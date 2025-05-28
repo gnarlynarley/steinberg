@@ -1,3 +1,4 @@
+import applyEdgeDetection from './applyEdgeDetection';
 import clamp from './clamp';
 import Color, { type ColorLike } from './Color';
 import createCanvas from './createCanvas';
@@ -79,11 +80,19 @@ function applyDithering(
 
 export default function applyFloydSteinberg(
   image: HTMLImageElement | HTMLCanvasElement,
-  pallete: Color[]
+  pallete: Color[],
+  withEdgeDetection: boolean
 ) {
   const { width, height } = image;
   const { canvas, context } = createCanvas(width, height);
   context.drawImage(image, 0, 0);
+  if (withEdgeDetection) {
+    const darkestColor = pallete.reduce((prev, next) =>
+      prev.isDarker(next) ? next : prev
+    );
+    const detected = applyEdgeDetection(image, darkestColor);
+    context.drawImage(detected, 0, 0);
+  }
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 

@@ -20,6 +20,7 @@
     .flatMap((line) => line.trim() || []);
   let showOriginal = false;
   let renderPallete = pallete;
+  let edgeDetection = true;
   let width = 500;
 
   let form: HTMLFormElement;
@@ -55,7 +56,8 @@
     ? resizedImage.then((image) =>
         applyFloydSteinberg(
           image,
-          Color.createPalleteFromHexCodes(renderPallete.join('\n'))
+          Color.createPalleteFromHexCodes(renderPallete.join('\n')),
+          edgeDetection
         )
       )
     : null;
@@ -67,6 +69,12 @@
     <div>
       <label>
         Show original <input type="checkbox" bind:checked={showOriginal} />
+      </label>
+      <label>
+        With edge detection <input
+          type="checkbox"
+          bind:checked={edgeDetection}
+        />
       </label>
     </div>
     <input type="file" accept="image/*" on:change={onFileInputChange} />
@@ -92,6 +100,10 @@
 </div>
 
 <style>
+  label {
+    display: block;
+  }
+
   .container {
     position: relative;
     border-radius: 0.3em;
