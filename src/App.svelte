@@ -4,6 +4,7 @@
   import applyFloydSteinberg from './lib/utils/applyFloydSteinberg';
   import Color from './lib/utils/Color';
   import DropZone from './lib/components/DropZone.svelte';
+  import type { ChangeEventHandler } from 'svelte/elements';
 
   let file: File | null = null;
   let src: string | null = null;
@@ -22,6 +23,11 @@
   function submit(ev: SubmitEvent) {
     ev.preventDefault();
     pallete = textarea;
+  }
+
+  function onFileInputChange(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    file = input.files?.[0] ?? null;
   }
 
   $: {
@@ -43,10 +49,14 @@
 </script>
 
 <div class="container">
-  <form on:submit={submit} class="form">
-    <textarea bind:value={textarea}></textarea>
-    <button type="submit">set pallete</button>
-  </form>
+  <div>
+    <form on:submit={submit} class="form">
+      <textarea bind:value={textarea}></textarea>
+      <button type="submit">set pallete</button>
+    </form>
+
+    <input type="file" accept="image/*" on:change={onFileInputChange} />
+  </div>
 
   <DropZone bind:file>
     <div class="dropzone">
