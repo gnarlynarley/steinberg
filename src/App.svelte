@@ -19,6 +19,7 @@
   `
     .split('\n')
     .flatMap((line) => line.trim() || []);
+  let showOriginal = false;
   let renderPallete = pallete;
   let width = 500;
 
@@ -29,6 +30,7 @@
     const formData = new FormData(form);
     width = parseInt(formData.get('width') as string, 10) || 500;
     renderPallete = pallete;
+    showOriginal = false;
   }
 
   function onFileInputChange(ev: Event) {
@@ -58,10 +60,16 @@
         )
       )
     : null;
+  $: shownImage = showOriginal ? imagePromise : ditheredPromise;
 </script>
 
 <div class="container">
   <div class="sidebar">
+    <div>
+      <label>
+        Show original <input type="checkbox" bind:checked={showOriginal} />
+      </label>
+    </div>
     <input type="file" accept="image/*" on:change={onFileInputChange} />
 
     <form bind:this={form} on:submit={submit} class="form">
@@ -73,18 +81,12 @@
 
   <DropZone bind:file>
     <div class="dropzone">
-      {#if ditheredPromise}
-        {#await ditheredPromise then image}
+      {#if shownImage}
+        {#await shownImage then image}
           <Canvas {image} />
         {/await}
       {:else}
         <h1>Drop an image here</h1>
-      {/if}
-
-      {#if resizedImage}
-        {#await resizedImage then image}
-          <Canvas {image} />
-        {/await}
       {/if}
     </div>
   </DropZone>
