@@ -96,8 +96,8 @@ export default function applyFloydSteinberg(
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-  for (let y = -1; y < height; y += 1) {
-    for (let x = -1; x < width; x += 1) {
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
       const i = (y * width + x) * 4;
       const colors = getPixels(imageData.data, i);
       const currentColor = Color.fromColorLike(colors);
