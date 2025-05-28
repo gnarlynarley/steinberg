@@ -43,17 +43,12 @@ function getPixels(data: Uint8ClampedArray, i: number): ColorLike {
   return { r, g, b };
 }
 
-interface Kernel {
-  matrix: number[];
-  width: number;
-  height: number;
-}
-
-const FLOYD_STEINBERG_KERNEL: Kernel = {
-  matrix: [0, 0, 7 / 16, 3 / 16, 5 / 16, 1 / 16],
-  width: 3,
-  height: 3,
-};
+const FLOYD_STEINBERG_MATRIX = [
+  { dx: 1, dy: 0, factor: 7 / 16 },
+  { dx: -1, dy: 1, factor: 3 / 16 },
+  { dx: 0, dy: 1, factor: 5 / 16 },
+  { dx: 1, dy: 1, factor: 1 / 16 },
+];
 
 function applyDithering(
   rx: number,
@@ -63,20 +58,7 @@ function applyDithering(
   data: Uint8ClampedArray,
   error: ColorLike
 ) {
-  // Floyd-Steinberg distributes error to 4 neighbors:
-  // Right (x+1, y)        7/16
-  // Bottom-left (x-1, y+1) 3/16
-  // Bottom (x, y+1)        5/16
-  // Bottom-right (x+1, y+1) 1/16
-
-  const neighbors = [
-    { dx: 1, dy: 0, factor: 7 / 16 },
-    { dx: -1, dy: 1, factor: 3 / 16 },
-    { dx: 0, dy: 1, factor: 5 / 16 },
-    { dx: 1, dy: 1, factor: 1 / 16 },
-  ];
-
-  for (const { dx, dy, factor } of neighbors) {
+  for (const { dx, dy, factor } of FLOYD_STEINBERG_MATRIX) {
     const x = rx + dx;
     const y = ry + dy;
 
@@ -105,8 +87,8 @@ export default function applyFloydSteinberg(
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
+  for (let y = -1; y < height; y += 1) {
+    for (let x = -1; x < width; x += 1) {
       const i = (y * width + x) * 4;
       const colors = getPixels(imageData.data, i);
       const currentColor = Color.fromColorLike(colors);

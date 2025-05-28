@@ -5,7 +5,6 @@
   import Color from './lib/utils/Color';
   import DropZone from './lib/components/DropZone.svelte';
   import resizeImage from './lib/utils/resizeImage';
-  import ColorPicker from './lib/components/ColorPicker.svelte';
   import PalletePicker from './lib/components/PalletePicker.svelte';
 
   let file: File | null = null;
