@@ -80,6 +80,12 @@
       {:else}
         <h1>Drop an image here</h1>
       {/if}
+
+      {#if resizedImage}
+        {#await resizedImage then image}
+          <Canvas {image} />
+        {/await}
+      {/if}
     </div>
   </DropZone>
 </div>
@@ -88,21 +94,27 @@
   .container {
     position: relative;
     border-radius: 0.3em;
-    display: flex;
-    justify-content: stretch;
-    align-items: stretch;
     gap: 1em;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: flex-start;
   }
 
   .sidebar {
     display: flex;
     flex-direction: column;
     gap: 1em;
+    position: sticky;
+    top: 0;
+    padding: 1em;
   }
 
   .dropzone {
     padding: 1em;
     border: 2px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
   }
 
   .form {
@@ -111,9 +123,5 @@
     gap: 1em;
     padding: 0.5em;
     border: 2px solid #333;
-
-    textarea {
-      min-height: 20em;
-    }
   }
 </style>
