@@ -5,6 +5,8 @@
   import Color from './lib/utils/Color';
   import DropZone from './lib/components/DropZone.svelte';
   import resizeImage from './lib/utils/resizeImage';
+  import ColorPicker from './lib/components/ColorPicker.svelte';
+  import PalletePicker from './lib/components/PalletePicker.svelte';
 
   let file: File | null = null;
   let src: string | null = null;
@@ -16,8 +18,8 @@
       #000000
   `
     .split('\n')
-    .flatMap((line) => line.trim() || [])
-    .join('\n');
+    .flatMap((line) => line.trim() || []);
+  let renderPallete = pallete;
   let width = 500;
 
   let form: HTMLFormElement;
@@ -25,8 +27,8 @@
   function submit(ev: SubmitEvent) {
     ev.preventDefault();
     const formData = new FormData(form);
-    pallete = formData.get('pallete')! as string;
     width = parseInt(formData.get('width') as string, 10) || 500;
+    renderPallete = pallete;
   }
 
   function onFileInputChange(ev: Event) {
@@ -50,7 +52,10 @@
     : null;
   $: ditheredPromise = resizedImage
     ? resizedImage.then((image) =>
-        applyFloydSteinberg(image, Color.createPalleteFromHexCodes(pallete))
+        applyFloydSteinberg(
+          image,
+          Color.createPalleteFromHexCodes(renderPallete.join('\n'))
+        )
       )
     : null;
 </script>
@@ -60,8 +65,8 @@
     <input type="file" accept="image/*" on:change={onFileInputChange} />
 
     <form bind:this={form} on:submit={submit} class="form">
-      <textarea defaultValue={pallete} name="pallete"></textarea>
       <input defaultValue={width} type="number" name="width" />
+      <PalletePicker value={pallete} />
       <button type="submit">Render</button>
     </form>
   </div>
