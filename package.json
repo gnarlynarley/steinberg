@@ -18,5 +18,8 @@
     "svelte-check": "^4.1.6",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "colorthief": "^2.6.0"
   }
 }

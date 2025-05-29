@@ -7,6 +7,7 @@
   import resizeImage from './lib/utils/resizeImage';
   import PalletePicker from './lib/components/PalletePicker.svelte';
   import downloadImage from './lib/utils/downloadImage';
+  import getImagePallete from './lib/utils/getImagePallete';
 
   let file: File | null = null;
   let src: string | null = null;
@@ -21,6 +22,7 @@
     .flatMap((line) => line.trim() || []);
   let showOriginal = false;
   let renderPallete = pallete;
+  let colorCount = 5;
   let edgeDetection = true;
   let width = 500;
 
@@ -86,6 +88,22 @@
       <input id="width" defaultValue={width} type="number" name="width" />
 
       <PalletePicker value={pallete} />
+      {#if imagePromise}
+        {#await imagePromise then image}
+          <label>
+            <span>Color count:</span>
+            <input type="number" bind:value={colorCount} />
+          </label>
+          <button
+            type="button"
+            on:click={() => {
+              pallete = getImagePallete(image, colorCount);
+            }}
+          >
+            get color pallete from image
+          </button>
+        {/await}
+      {/if}
       <button type="submit">Render</button>
     </form>
 
@@ -134,16 +152,18 @@
     grid-template-columns: auto 1fr;
     align-items: flex-start;
     min-height: 100vh;
-    padding: var(--gutter);
   }
 
   .sidebar {
+    padding: var(--gutter);
     display: flex;
     flex-direction: column;
     gap: 1em;
     position: sticky;
     top: 0;
     padding: 1em;
+    max-height: 100vh;
+    overflow: auto;
   }
 
   .form {
