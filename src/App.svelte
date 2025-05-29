@@ -6,6 +6,7 @@
   import DropZone from './lib/components/DropZone.svelte';
   import resizeImage from './lib/utils/resizeImage';
   import PalletePicker from './lib/components/PalletePicker.svelte';
+  import downloadImage from './lib/utils/downloadImage';
 
   let file: File | null = null;
   let src: string | null = null;
@@ -70,6 +71,7 @@
       <label>
         Show original <input type="checkbox" bind:checked={showOriginal} />
       </label>
+
       <label>
         With edge detection <input
           type="checkbox"
@@ -80,22 +82,42 @@
     <input type="file" accept="image/*" on:change={onFileInputChange} />
 
     <form bind:this={form} on:submit={submit} class="form">
-      <input defaultValue={width} type="number" name="width" />
+      <label for="width">Width</label>
+      <input id="width" defaultValue={width} type="number" name="width" />
+
       <PalletePicker value={pallete} />
       <button type="submit">Render</button>
     </form>
+
+    {#if ditheredPromise}
+      {#await ditheredPromise then image}
+        <h3>Download</h3>
+        <div>
+          <button type="button" on:click={() => downloadImage(image, 1)}>
+            1x
+          </button>
+          <button type="button" on:click={() => downloadImage(image, 2)}>
+            2x
+          </button>
+          <button type="button" on:click={() => downloadImage(image, 3)}>
+            3x
+          </button>
+          <button type="button" on:click={() => downloadImage(image, 4)}>
+            4x
+          </button>
+        </div>
+      {/await}
+    {/if}
   </div>
 
   <DropZone bind:file>
-    <div class="dropzone">
-      {#if shownImage}
-        {#await shownImage then image}
-          <Canvas {image} pixelated />
-        {/await}
-      {:else}
-        <h1>Drop an image here</h1>
-      {/if}
-    </div>
+    {#if shownImage}
+      {#await shownImage then image}
+        <Canvas {image} pixelated />
+      {/await}
+    {:else}
+      <h1>Drop an image here</h1>
+    {/if}
   </DropZone>
 </div>
 
@@ -111,6 +133,8 @@
     display: grid;
     grid-template-columns: auto 1fr;
     align-items: flex-start;
+    min-height: 100vh;
+    padding: var(--gutter);
   }
 
   .sidebar {
@@ -120,14 +144,6 @@
     position: sticky;
     top: 0;
     padding: 1em;
-  }
-
-  .dropzone {
-    padding: 1em;
-    border: 2px solid #333;
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
   }
 
   .form {

@@ -23,3 +23,14 @@
 >
   <slot />
 </div>
+
+<style>
+  div {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--border-radius);
+    border: var(--border);
+  }
+</style>

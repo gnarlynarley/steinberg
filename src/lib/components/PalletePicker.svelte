@@ -16,11 +16,21 @@
 </script>
 
 <div>
-  {#each value as hex, i}
-    <div>
-      <ColorPicker name="color" bind:value={hex} />
-      <button type="button" on:click={() => removeColor(i)}>remove</button>
-    </div>
-  {/each}
+  <div class="wrapper">
+    {#each value as hex, i}
+      <div>
+        <ColorPicker name="color" bind:value={hex} />
+        <button type="button" on:click={() => removeColor(i)}>remove</button>
+      </div>
+    {/each}
+  </div>
   <button type="button" on:click={addColor}>add</button>
 </div>
+
+<style>
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gutter);
+  }
+</style>
