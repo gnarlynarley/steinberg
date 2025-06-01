@@ -1,7 +1,10 @@
-import applyEdgeDetection from './applyEdgeDetection';
-import clamp from './clamp';
-import Color, { type ColorLike } from './Color';
-import createCanvas from './createCanvas';
+import applyEdgeDetection from "./applyEdgeDetection";
+import clamp from "./clamp";
+import Color, { type ColorLike } from "./Color";
+import convertMatrixToPixelMap from "./convertMatrixToPixelMap";
+import createCanvas from "./createCanvas";
+
+export type AlgorithmName = keyof typeof MATRIX_ALGORITH_MAP;
 
 function mapColorToPallete(color: Color, pallete: Color[]) {
   let current_distance = Infinity;
@@ -44,12 +47,32 @@ function getPixels(data: Uint8ClampedArray, i: number): ColorLike {
   return { r, g, b };
 }
 
-const FLOYD_STEINBERG_MATRIX = [
-  { dx: 1, dy: 0, factor: 7 / 16 },
-  { dx: -1, dy: 1, factor: 3 / 16 },
-  { dx: 0, dy: 1, factor: 5 / 16 },
-  { dx: 1, dy: 1, factor: 1 / 16 },
-];
+// prettier-ignore
+const FLOYD_STEINBERG_MATRIX = convertMatrixToPixelMap([
+  0, '*', 7,
+  3,   5, 1
+], 3, 16);
+// prettier-ignore
+const ATKINSON_MATRIX = convertMatrixToPixelMap([
+  0, 0, '*', 1, 1,
+  0, 1,   1, 1, 0,
+  0, 0,   1, 0, 0
+], 5, 8);
+// prettier-ignore
+const JARVIS_JUDICE_NINKE_MATRIX  = convertMatrixToPixelMap([
+  0, 0, '*', 7, 5,
+  3, 5,   7, 5, 3,
+  0, 3,   5, 3, 0
+], 5, 48);
+
+const MATRIX_ALGORITH_MAP = {
+  "Floyd Steinberg": FLOYD_STEINBERG_MATRIX,
+  Atkinson: ATKINSON_MATRIX,
+  "Jarvis-Judice-Ninke": JARVIS_JUDICE_NINKE_MATRIX,
+} as const;
+export const MATRIX_ALGORITH_NAMES = Object.keys(
+  MATRIX_ALGORITH_MAP
+) as AlgorithmName[];
 
 function applyDithering(
   rx: number,
@@ -57,9 +80,11 @@ function applyDithering(
   width: number,
   height: number,
   data: Uint8ClampedArray,
-  error: ColorLike
+  error: ColorLike,
+  algorithm: AlgorithmName
 ) {
-  for (const { dx, dy, factor } of FLOYD_STEINBERG_MATRIX) {
+  const matrix = MATRIX_ALGORITH_MAP[algorithm];
+  for (const { dx, dy, factor } of matrix) {
     const x = rx + dx;
     const y = ry + dy;
 
@@ -81,7 +106,8 @@ function applyDithering(
 export default function applyFloydSteinberg(
   image: HTMLImageElement | HTMLCanvasElement,
   pallete: Color[],
-  withEdgeDetection: boolean
+  withEdgeDetection: boolean,
+  algorithm: AlgorithmName
 ) {
   const { width, height } = image;
   const { canvas, context } = createCanvas(width, height);
@@ -105,7 +131,7 @@ export default function applyFloydSteinberg(
       const error = getQuantizationError(currentColor, nextColor);
 
       applyPixels(imageData.data, i, nextColor);
-      applyDithering(x, y, width, height, imageData.data, error);
+      applyDithering(x, y, width, height, imageData.data, error, algorithm);
     }
   }
 

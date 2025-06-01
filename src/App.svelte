@@ -1,13 +1,16 @@
 <script lang="ts">
-  import Canvas from './lib/components/Canvas.svelte';
-  import createImage from './lib/utils/createImage';
-  import applyFloydSteinberg from './lib/utils/applyFloydSteinberg';
-  import Color from './lib/utils/Color';
-  import DropZone from './lib/components/DropZone.svelte';
-  import resizeImage from './lib/utils/resizeImage';
-  import PalletePicker from './lib/components/PalletePicker.svelte';
-  import downloadImage from './lib/utils/downloadImage';
-  import getImagePallete from './lib/utils/getImagePallete';
+  import Canvas from "./lib/components/Canvas.svelte";
+  import createImage from "./lib/utils/createImage";
+  import applyFloydSteinberg, {
+    type AlgorithmName,
+    MATRIX_ALGORITH_NAMES,
+  } from "./lib/utils/applyFloydSteinberg";
+  import Color from "./lib/utils/Color";
+  import DropZone from "./lib/components/DropZone.svelte";
+  import resizeImage from "./lib/utils/resizeImage";
+  import PalletePicker from "./lib/components/PalletePicker.svelte";
+  import downloadImage from "./lib/utils/downloadImage";
+  import getImagePallete from "./lib/utils/getImagePallete";
 
   let file: File | null = null;
   let src: string | null = null;
@@ -18,7 +21,7 @@
       #ff0000
       #000000
   `
-    .split('\n')
+    .split("\n")
     .flatMap((line) => line.trim() || []);
   let showOriginal = false;
   let renderPallete = pallete;
@@ -26,12 +29,20 @@
   let edgeDetection = true;
   let width = 500;
 
+  let algorithm: AlgorithmName = "Floyd Steinberg";
+
+  function onAlgorithmChange(
+    event: Event & { currentTarget: HTMLInputElement }
+  ) {
+    algorithm = event.currentTarget.value as AlgorithmName;
+  }
+
   let form: HTMLFormElement;
 
   function submit(ev: SubmitEvent) {
     ev.preventDefault();
     const formData = new FormData(form);
-    width = parseInt(formData.get('width') as string, 10) || 500;
+    width = parseInt(formData.get("width") as string, 10) || 500;
     renderPallete = pallete;
     showOriginal = false;
   }
@@ -59,8 +70,9 @@
     ? resizedImage.then((image) =>
         applyFloydSteinberg(
           image,
-          Color.createPalleteFromHexCodes(renderPallete.join('\n')),
-          edgeDetection
+          Color.createPalleteFromHexCodes(renderPallete.join("\n")),
+          edgeDetection,
+          algorithm
         )
       )
     : null;
@@ -80,6 +92,20 @@
           bind:checked={edgeDetection}
         />
       </label>
+
+      <h3>Dithering algorithm</h3>
+      {#each MATRIX_ALGORITH_NAMES as name}
+        <label>
+          <input
+            checked={algorithm === name}
+            type="radio"
+            value={name}
+            name="algorithm"
+            on:change={onAlgorithmChange}
+          />
+          <span>{name}</span>
+        </label>
+      {/each}
     </div>
     <input type="file" accept="image/*" on:change={onFileInputChange} />
 
