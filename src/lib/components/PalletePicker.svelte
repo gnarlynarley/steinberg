@@ -5,7 +5,6 @@
   let deleteMode = false;
 
   function removeColor(index: number) {
-    console.log(index);
     value.splice(index, 1);
     value = value;
   }

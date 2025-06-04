@@ -31,7 +31,6 @@
 
   $: hasEnoughColors = pallete.length >= 2;
   $: canRender = hasEnoughColors;
-  $: console.log({ pallete, canRender });
 
   let algorithm: AlgorithmName = 'Floyd Steinberg';
 
