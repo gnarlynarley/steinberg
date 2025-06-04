@@ -1,18 +1,19 @@
 <script lang="ts">
-  import Canvas from "./lib/components/Canvas.svelte";
-  import createImage from "./lib/utils/createImage";
+  import Canvas from './lib/components/Canvas.svelte';
+  import createImage from './lib/utils/createImage';
   import applyFloydSteinberg, {
     type AlgorithmName,
     MATRIX_ALGORITH_NAMES,
-  } from "./lib/utils/applyFloydSteinberg";
-  import Color from "./lib/utils/Color";
-  import DropZone from "./lib/components/DropZone.svelte";
-  import resizeImage from "./lib/utils/resizeImage";
-  import PalletePicker from "./lib/components/PalletePicker.svelte";
-  import downloadImage from "./lib/utils/downloadImage";
-  import getImagePallete from "./lib/utils/getImagePallete";
+  } from './lib/utils/applyFloydSteinberg';
+  import Color from './lib/utils/Color';
+  import DropZone from './lib/components/DropZone.svelte';
+  import resizeImage from './lib/utils/resizeImage';
+  import PalletePicker from './lib/components/PalletePicker.svelte';
+  import downloadImage from './lib/utils/downloadImage';
+  import getImagePallete from './lib/utils/getImagePallete';
+  import { file } from './lib/store/file';
+  import Button from './lib/components/Button.svelte';
 
-  let file: File | null = null;
   let src: string | null = null;
   let pallete = `
       #ffffff
@@ -21,15 +22,18 @@
       #ff0000
       #000000
   `
-    .split("\n")
+    .split('\n')
     .flatMap((line) => line.trim() || []);
   let showOriginal = false;
   let renderPallete = pallete;
-  let colorCount = 5;
-  let edgeDetection = true;
+  let edgeDetection = false;
   let width = 500;
 
-  let algorithm: AlgorithmName = "Floyd Steinberg";
+  $: hasEnoughColors = pallete.length >= 2;
+  $: canRender = hasEnoughColors;
+  $: console.log({ pallete, canRender });
+
+  let algorithm: AlgorithmName = 'Floyd Steinberg';
 
   function onAlgorithmChange(
     event: Event & { currentTarget: HTMLInputElement }
@@ -42,14 +46,14 @@
   function submit(ev: SubmitEvent) {
     ev.preventDefault();
     const formData = new FormData(form);
-    width = parseInt(formData.get("width") as string, 10) || 500;
+    width = parseInt(formData.get('width') as string, 10) || 500;
     renderPallete = pallete;
     showOriginal = false;
   }
 
   function onFileInputChange(ev: Event) {
     const input = ev.target as HTMLInputElement;
-    file = input.files?.[0] ?? null;
+    $file = input.files?.[0] ?? null;
   }
 
   $: {
@@ -57,8 +61,8 @@
       URL.revokeObjectURL(src);
       src = null;
     }
-    if (file) {
-      src = URL.createObjectURL(file);
+    if ($file) {
+      src = URL.createObjectURL($file);
     }
   }
 
@@ -70,7 +74,7 @@
     ? resizedImage.then((image) =>
         applyFloydSteinberg(
           image,
-          Color.createPalleteFromHexCodes(renderPallete.join("\n")),
+          Color.createPalleteFromHexCodes(renderPallete.join('\n')),
           edgeDetection,
           algorithm
         )
@@ -81,18 +85,17 @@
 
 <div class="container">
   <div class="sidebar">
+    <input type="file" accept="image/*" on:change={onFileInputChange} />
+
+    <label>
+      Show original <input type="checkbox" bind:checked={showOriginal} />
+    </label>
+
+    <label>
+      With edge detection <input type="checkbox" bind:checked={edgeDetection} />
+    </label>
+
     <div>
-      <label>
-        Show original <input type="checkbox" bind:checked={showOriginal} />
-      </label>
-
-      <label>
-        With edge detection <input
-          type="checkbox"
-          bind:checked={edgeDetection}
-        />
-      </label>
-
       <h3>Dithering algorithm</h3>
       {#each MATRIX_ALGORITH_NAMES as name}
         <label>
@@ -107,62 +110,68 @@
         </label>
       {/each}
     </div>
-    <input type="file" accept="image/*" on:change={onFileInputChange} />
 
-    <form bind:this={form} on:submit={submit} class="form">
-      <label for="width">Width</label>
-      <input id="width" defaultValue={width} type="number" name="width" />
+    {#if imagePromise}
+      <form bind:this={form} on:submit={submit} class="form">
+        <label for="width">Width</label>
+        <input id="width" defaultValue={width} type="number" name="width" />
 
-      <PalletePicker value={pallete} />
-      {#if imagePromise}
+        <PalletePicker bind:value={pallete} />
         {#await imagePromise then image}
-          <label>
-            <span>Color count:</span>
-            <input type="number" bind:value={colorCount} />
-          </label>
-          <button
+          <Button
             type="button"
-            on:click={() => {
+            onclick={() => {
+              const colorCount =
+                Number.parseInt(prompt('How many colors?') ?? '4', 10) || 10;
               pallete = getImagePallete(image, colorCount);
             }}
           >
             get color pallete from image
-          </button>
+          </Button>
         {/await}
-      {/if}
-      <button type="submit">Render</button>
-    </form>
+        <Button type="submit" primary disabled={!canRender}>Render</Button>
+        {#if !hasEnoughColors}
+          <p>Needs at least two colors</p>
+        {/if}
+      </form>
+    {/if}
 
     {#if ditheredPromise}
       {#await ditheredPromise then image}
         <h3>Download</h3>
         <div>
-          <button type="button" on:click={() => downloadImage(image, 1)}>
+          <Button type="button" onclick={() => downloadImage(image, 1)}>
             1x
-          </button>
-          <button type="button" on:click={() => downloadImage(image, 2)}>
+          </Button>
+          <Button type="button" onclick={() => downloadImage(image, 2)}>
             2x
-          </button>
-          <button type="button" on:click={() => downloadImage(image, 3)}>
+          </Button>
+          <Button type="button" onclick={() => downloadImage(image, 3)}>
             3x
-          </button>
-          <button type="button" on:click={() => downloadImage(image, 4)}>
+          </Button>
+          <Button type="button" onclick={() => downloadImage(image, 4)}>
             4x
-          </button>
+          </Button>
         </div>
       {/await}
     {/if}
   </div>
 
-  <DropZone bind:file>
-    {#if shownImage}
-      {#await shownImage then image}
-        <Canvas {image} pixelated />
-      {/await}
-    {:else}
-      <h1>Drop an image here</h1>
-    {/if}
-  </DropZone>
+  <div class="main">
+    <DropZone bind:file={$file}>
+      {#if shownImage}
+        {#await shownImage then image}
+          <div class="canvas">
+            <Canvas {image} pixelated />
+          </div>
+        {/await}
+      {:else}
+        <div class="placeholder">
+          <h1>Drop an image here</h1>
+        </div>
+      {/if}
+    </DropZone>
+  </div>
 </div>
 
 <style>
@@ -172,12 +181,29 @@
 
   .container {
     position: relative;
-    border-radius: 0.3em;
     gap: 1em;
     display: grid;
     grid-template-columns: auto 1fr;
-    align-items: flex-start;
+    align-items: start;
+  }
+
+  .main {
+    position: sticky;
+    top: 0;
+    left: 0;
+  }
+
+  .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 100vh;
+  }
+
+  .canvas {
+    position: relative;
+    height: 100vh;
+    width: 100%;
   }
 
   .sidebar {
@@ -185,11 +211,7 @@
     display: flex;
     flex-direction: column;
     gap: 1em;
-    position: sticky;
-    top: 0;
     padding: 1em;
-    max-height: 100vh;
-    overflow: auto;
   }
 
   .form {
