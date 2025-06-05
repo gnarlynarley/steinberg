@@ -5,10 +5,10 @@
     primary?: boolean;
   };
 
-  const { children, primary, ...rest }: Props = $props();
+  const { children, primary, type = 'button', ...rest }: Props = $props();
 </script>
 
-<button {...rest} class:is-primary={primary}>
+<button {type} {...rest} class:is-primary={primary}>
   {@render children?.()}
 </button>
 

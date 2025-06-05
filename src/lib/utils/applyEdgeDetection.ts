@@ -3,7 +3,8 @@ import createCanvas from './createCanvas';
 
 export default function applyEdgeDetection(
   image: HTMLImageElement | HTMLCanvasElement,
-  color: Color
+  color: Color,
+  edgeDetectionLevel: number
 ) {
   const { canvas, context } = createCanvas(image.width, image.height);
 
@@ -16,12 +17,12 @@ export default function applyEdgeDetection(
     [-1, 0, 1],
     [-2, 0, 2],
     [-1, 0, 1],
-  ].map((row) => row.map((value) => value * 0.05));
+  ].map((row) => row.map((value) => value * edgeDetectionLevel * 0.01));
   const kernelY = [
     [-1, -2, -1],
     [0, 0, 0],
     [1, 2, 1],
-  ].map((row) => row.map((value) => value * 0.05));
+  ].map((row) => row.map((value) => value * edgeDetectionLevel * 0.01));
 
   const output = context.createImageData(width, height);
 

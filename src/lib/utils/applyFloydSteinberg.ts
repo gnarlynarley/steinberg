@@ -1,8 +1,9 @@
-import applyEdgeDetection from "./applyEdgeDetection";
-import clamp from "./clamp";
-import Color, { type ColorLike } from "./Color";
-import convertMatrixToPixelMap from "./convertMatrixToPixelMap";
-import createCanvas from "./createCanvas";
+import applyEdgeDetection from './applyEdgeDetection';
+import applySharpening from './applySharpening';
+import clamp from './clamp';
+import Color, { type ColorLike } from './Color';
+import convertMatrixToPixelMap from './convertMatrixToPixelMap';
+import createCanvas from './createCanvas';
 
 export type AlgorithmName = keyof typeof MATRIX_ALGORITH_MAP;
 
@@ -66,9 +67,9 @@ const JARVIS_JUDICE_NINKE_MATRIX  = convertMatrixToPixelMap([
 ], 5, 48);
 
 const MATRIX_ALGORITH_MAP = {
-  "Floyd Steinberg": FLOYD_STEINBERG_MATRIX,
+  'Floyd Steinberg': FLOYD_STEINBERG_MATRIX,
   Atkinson: ATKINSON_MATRIX,
-  "Jarvis-Judice-Ninke": JARVIS_JUDICE_NINKE_MATRIX,
+  'Jarvis-Judice-Ninke': JARVIS_JUDICE_NINKE_MATRIX,
 } as const;
 export const MATRIX_ALGORITH_NAMES = Object.keys(
   MATRIX_ALGORITH_MAP
@@ -106,18 +107,27 @@ function applyDithering(
 export default function applyFloydSteinberg(
   image: HTMLImageElement | HTMLCanvasElement,
   pallete: Color[],
-  withEdgeDetection: boolean,
+  edgeDetectionLevel: number | null,
+  sharpeningLevel: number | null,
   algorithm: AlgorithmName
 ) {
   const { width, height } = image;
   const { canvas, context } = createCanvas(width, height);
   context.drawImage(image, 0, 0);
-  if (withEdgeDetection) {
+  if (edgeDetectionLevel !== null) {
     const darkestColor = pallete.reduce((prev, next) =>
       prev.isDarker(next) ? next : prev
     );
-    const detected = applyEdgeDetection(image, darkestColor);
+    const detected = applyEdgeDetection(
+      image,
+      darkestColor,
+      edgeDetectionLevel
+    );
     context.drawImage(detected, 0, 0);
+  }
+
+  if (sharpeningLevel !== null) {
+    context.drawImage(applySharpening(canvas, sharpeningLevel), 0, 0);
   }
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);

@@ -13,6 +13,7 @@
   import getImagePallete from './lib/utils/getImagePallete';
   import { file } from './lib/store/file';
   import Button from './lib/components/Button.svelte';
+  import getDialogValue from './lib/utils/getDialogValue';
 
   let src: string | null = null;
   let pallete = `
@@ -26,7 +27,8 @@
     .flatMap((line) => line.trim() || []);
   let showOriginal = false;
   let renderPallete = pallete;
-  let edgeDetection = false;
+  let edgeDetectionLevel = 0;
+  let sharpeningLevel = 0;
   let width = 500;
 
   $: hasEnoughColors = pallete.length >= 2;
@@ -74,7 +76,8 @@
         applyFloydSteinberg(
           image,
           Color.createPalleteFromHexCodes(renderPallete.join('\n')),
-          edgeDetection,
+          edgeDetectionLevel || null,
+          sharpeningLevel || null,
           algorithm
         )
       )
@@ -91,7 +94,25 @@
     </label>
 
     <label>
-      With edge detection <input type="checkbox" bind:checked={edgeDetection} />
+      <span>Edge detection</span>
+      <input
+        type="range"
+        min="0"
+        max="10"
+        bind:value={edgeDetectionLevel}
+        step="0.1"
+      />
+    </label>
+
+    <label>
+      <span>Sharpening</span>
+      <input
+        type="range"
+        min="0"
+        max="10"
+        bind:value={sharpeningLevel}
+        step="0.1"
+      />
     </label>
 
     <div>
@@ -119,9 +140,9 @@
         {#await imagePromise then image}
           <Button
             type="button"
-            onclick={() => {
-              const colorCount =
-                Number.parseInt(prompt('How many colors?') ?? '4', 10) || 10;
+            onclick={async () => {
+              const colorCount = await getDialogValue('How many colors?', 16);
+              if (colorCount === null) return;
               pallete = getImagePallete(image, colorCount);
             }}
           >

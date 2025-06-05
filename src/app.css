@@ -1,4 +1,4 @@
-*,
+*:not(dialog),
 *:before,
 *:after {
   margin: 0;
@@ -6,24 +6,26 @@
 }
 
 :root {
+  --color-accent: #333;
+  --color-error: rgb(133, 47, 47);
+  --color-primary: #5233ea;
+  --color-text: rgba(255, 255, 255, 0.87);
+  --color-background: #242424;
+  --border: 2px solid var(--color-accent);
+  --border-radius: 1em;
+  --gutter: 1em;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--color-text);
+  background-color: var(--color-background);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  --color-accent: #333;
-  --color-error: rgb(133, 47, 47);
-  --color-primary: #5233ea;
-  --border: 2px solid var(--color-accent);
-  --border-radius: 1em;
-  --gutter: 1em;
 }
 
 a {
@@ -50,17 +52,4 @@ h1 {
 
 #app {
   display: contents;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
