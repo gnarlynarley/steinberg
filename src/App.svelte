@@ -205,6 +205,7 @@
     display: grid;
     grid-template-columns: auto 1fr;
     align-items: start;
+    min-width: 800px;
   }
 
   .main {
