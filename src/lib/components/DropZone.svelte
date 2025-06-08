@@ -31,5 +31,7 @@
     align-items: center;
     border-radius: var(--border-radius);
     border: var(--border);
+    height: 100%;
+    width: 100%;
   }
 </style>

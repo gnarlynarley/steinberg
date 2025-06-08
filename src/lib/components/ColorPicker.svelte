@@ -1,5 +1,6 @@
 <script lang="ts">
   import ColorPicker, { ChromeVariant } from 'svelte-awesome-color-picker';
+  import ColorPickerInput from './ColorPickerInput.svelte';
   export let name: string;
   export let value: string;
 </script>
@@ -13,7 +14,7 @@
     isDark
     isAlpha={false}
     label=""
-    components={ChromeVariant}
+    components={{ ...ChromeVariant, input: ColorPickerInput }}
   />
 </div>
 

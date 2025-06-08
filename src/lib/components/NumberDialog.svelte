@@ -16,7 +16,8 @@
 <Dialog>
   <form
     method="dialog"
-    onsubmit={() => {
+    onsubmit={(ev) => {
+      ev.preventDefault();
       onsubmit(value);
     }}
     {onclose}

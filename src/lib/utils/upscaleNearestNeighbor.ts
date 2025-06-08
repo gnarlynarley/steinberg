@@ -1,18 +1,27 @@
 import createCanvas from './createCanvas';
 
 export default function upscaleNearestNeighbor(
-  canvas: HTMLCanvasElement,
+  image: HTMLCanvasElement | HTMLImageElement,
   scale: number
 ) {
-  const context = canvas.getContext('2d');
-  if (!context) return;
+  const temp = createCanvas(image.width, image.height);
+  temp.context.drawImage(image, 0, 0);
+  const imageData = temp.context.getImageData(
+    0,
+    0,
+    temp.canvas.width,
+    temp.canvas.height
+  );
+  temp.destroy();
 
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const result = createCanvas(canvas.width * scale, canvas.height * scale);
+  const result = createCanvas(
+    Math.round(image.width * scale),
+    Math.round(image.height * scale)
+  );
 
-  const { width, height, data } = imageData;
-  const newWidth = width * scale;
-  const newHeight = height * scale;
+  const { width, data } = imageData;
+  const newWidth = result.canvas.width;
+  const newHeight = result.canvas.height;
   const newData = new Uint8ClampedArray(newWidth * newHeight * 4);
 
   for (let y = 0; y < newHeight; y++) {

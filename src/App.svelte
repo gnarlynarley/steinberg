@@ -14,6 +14,7 @@
   import { file } from './lib/store/file';
   import Button from './lib/components/Button.svelte';
   import getDialogValue from './lib/utils/getDialogValue';
+  import upscaleNearestNeighbor from './lib/utils/upscaleNearestNeighbor';
 
   let src: string | null = null;
   let pallete = `
@@ -29,7 +30,7 @@
   let renderPallete = pallete;
   let edgeDetectionLevel = 0;
   let sharpeningLevel = 0;
-  let width = 500;
+  let pixelSize = 4;
 
   $: hasEnoughColors = pallete.length >= 2;
   $: canRender = hasEnoughColors;
@@ -47,7 +48,7 @@
   function submit(ev: SubmitEvent) {
     ev.preventDefault();
     const formData = new FormData(form);
-    width = parseInt(formData.get('width') as string, 10) || 500;
+    pixelSize = parseInt(formData.get('width') as string, 10);
     renderPallete = pallete;
     showOriginal = false;
   }
@@ -67,9 +68,15 @@
     }
   }
 
+  let nearestNeighborScale = false;
+
   $: imagePromise = src ? createImage(src) : null;
   $: resizedImage = imagePromise
-    ? imagePromise.then((image) => resizeImage(image, width))
+    ? imagePromise.then((image) =>
+        nearestNeighborScale
+          ? upscaleNearestNeighbor(image, image.width / pixelSize / image.width)
+          : resizeImage(image, Math.floor(image.width / pixelSize))
+      )
     : null;
   $: ditheredPromise = resizedImage
     ? resizedImage.then((image) =>
@@ -91,6 +98,13 @@
 
     <label>
       Show original <input type="checkbox" bind:checked={showOriginal} />
+    </label>
+
+    <label>
+      Nearest neighbor scale <input
+        type="checkbox"
+        bind:checked={nearestNeighborScale}
+      />
     </label>
 
     <label>
@@ -133,8 +147,11 @@
 
     {#if imagePromise}
       <form bind:this={form} on:submit={submit} class="form">
-        <label for="width">Width</label>
-        <input id="width" defaultValue={width} type="number" name="width" />
+        <label for="width">
+          <p>Pixeldensity</p>
+          <p><small>(lower takes longer on large images)</small></p>
+        </label>
+        <input id="width" defaultValue={pixelSize} type="number" name="width" />
 
         <PalletePicker bind:value={pallete} />
         {#await imagePromise then image}
@@ -212,18 +229,20 @@
     position: sticky;
     top: 0;
     left: 0;
+    padding: var(--gutter);
+    height: 100vh;
   }
 
   .placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100%;
   }
 
   .canvas {
     position: relative;
-    height: 100vh;
+    height: 100%;
     width: 100%;
   }
 

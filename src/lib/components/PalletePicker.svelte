@@ -39,7 +39,7 @@
     onclick={() => (deleteMode = !deleteMode)}
     primary={deleteMode}
   >
-    {deleteMode ? 'stop removing colors' : 'remove colors'}
+    {deleteMode ? 'stop removing' : 'remove colors'}
   </Button>
 </div>
 
